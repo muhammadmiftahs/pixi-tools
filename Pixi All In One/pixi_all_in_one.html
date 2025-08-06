@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixi All-In-One Tools</title>
+  <link rel="icon" href="https://pixinvite.com/wp-content/uploads/2025/01/20250127_223841-modified.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* Global */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: #fafafd; color: #333; display: flex; flex-direction: column; align-items: center; animation: bgAnim 15s infinite; }
+    @keyframes bgAnim { 0%,100%{background:#fafafd;}50%{background:#f0f4f8;} }
+    header { margin: 2rem 0; animation: fadeIn 2s ease; }
+    header h1 { font-size: 2.5rem; position: relative; display: inline-block; }
+    header h1::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 60%; height: 4px; background: linear-gradient(90deg,#6c5ce7,#81e6d9); transform: translateX(-50%); animation: underline 2s infinite; }
+    @keyframes underline { 0%,100%{width:0;}50%{width:60%;} }
+    .tabs { display: flex; background: #fff; border-radius: 50px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05); animation: slideDown 1s ease; }
+    @keyframes slideDown { from{transform:translateY(-20px);opacity:0;} to{transform:none;opacity:1;} }
+    .tab { flex: 1; padding: 1rem 2rem; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .5rem; transition:background .3s,color .3s; }
+    .tab:hover { background: #eceafe; }
+    .tab.active { background: #6c5ce7; color: #fff; }
+    section { display: none; width: 100%; max-width: 900px; margin-bottom: 2rem; animation: fadeIn 1s ease; }
+    section.active { display: block; }
+    button { cursor: pointer; }
+    /* Color Picker */
+    .picker-container { background: #fff; padding: 2rem; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden; animation: popIn 1s ease; }
+    @keyframes popIn { from{transform:scale(0.95);opacity:0;} to{transform:scale(1);opacity:1;} }
+    .tabs-inner { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+    .tab-inner { flex: 1; background: #e8eafd; border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; transition: background .3s; }
+    .tab-inner.active { background: #81a1f3; color: #fff; }
+    .picker-section { display: none; }
+    .picker-section.active { display: block; }
+    .color-input { width: 100%; height: 4rem; border: none; cursor: pointer; transition:transform .3s; }
+    .color-input:hover { transform: scale(1.05); }
+    .canvas-wrapper { position: relative; border:2px solid #e0e0e0; border-radius:12px; overflow:hidden; margin-top:1rem; }
+    #canvas { display:none; cursor:crosshair; width:100%; height:auto; }
+    #magnifier { position:absolute; width:150px; height:150px; border:3px solid #6c5ce7; border-radius:50%; overflow:hidden; display:none; pointer-events:none; }
+    #magnifier canvas { position:absolute; width:300px; height:300px; image-rendering:pixelated; }
+    .color-info { display:flex; align-items:center; gap:1rem; border-radius:1rem; margin-top:1.5rem; padding:1rem; background:linear-gradient(135deg,#fff,#f7f9fc); backdrop-filter:blur(6px); }
+    .color-swatch { width:3rem; height:3rem; border-radius:.5rem; border:2px solid #ddd; }
+    .copy-btn { background:#6c5ce7; color:#fff; padding:.5rem; border-radius:.5rem; transition:transform .3s; }
+    .copy-btn:hover { transform:scale(1.2); }
+    .palette { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.5rem; }
+    .palette-item { display:flex; align-items:center; gap:.5rem; background:#f0f2f5; padding:.5rem .75rem; border-radius:.5rem; animation:fadeIn 0.5s ease; }
+    .palette-swatch { width:1.5rem; height:1.5rem; border-radius:.3rem; border:1px solid #ddd; }
+    /* Text Transformer */
+    .transformer { position:relative; }
+    .transformer::before { content:'✍️'; font-size:4rem; position:absolute; top:-20px; left:-20px; opacity:.1; animation:float 6s infinite; }
+    .transformer textarea { width:100%; padding:15px; border:2px solid #ddd; border-radius:8px; font-size:1rem; resize:vertical; margin-bottom:1rem; transition:box-shadow .3s; }
+    .transformer textarea:focus { box-shadow:0 0 8px rgba(108,92,231,0.5); }
+    .buttons { display:flex; gap:10px; margin-bottom:1rem; }
+    .buttons button { flex:1; padding:12px; border:none; border-radius:8px; color:#fff; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; transition:filter .3s; }
+    .buttons button:hover { filter:brightness(1.1); }
+    .capitalize { background:#ff9a9e; }
+    .uppercase { background:#fad0c4; }
+    .lowercase { background:#fbc2eb; }
+    #copyOutput { width:100%; padding:12px; background:#6e8efb; color:#fff; border:none; border-radius:8px; font-weight:600; margin-top:.5rem; transition:background .3s; }
+    #copyOutput:hover { background:#5b79d1; }
+    /* Image Compressor */
+    .compressor { position:relative; }
+    .compressor::before { content:'📹'; font-size:4rem; position:absolute; top:-20px; right:-20px; opacity:.1; animation:float 8s infinite; }
+    .compressor .controls { background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.08); }
+    .settings { display:flex; gap:1rem; margin:1rem 0; align-items:center; }
+    .settings label { font-weight:500; display:flex; align-items:center; gap:.5rem; }
+    .actions { display:flex; gap:.5rem; }
+    .actions button { flex:1; padding:.75rem; background:#71B78C; color:#fff; border:none; border-radius:.5rem; display:flex; align-items:center; justify-content:center; gap:.5rem; transition:transform .3s; }
+    .actions button:hover { transform:translateY(-2px); }
+    .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:1rem; margin-top:1rem; }
+    .card { background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.06); padding:1rem; text-align:center; transition:transform .3s; }
+    .card:hover { transform:scale(1.05); }
+    .card img { max-width:100%; max-height:80px; object-fit:cover; border-radius:4px; }
+    .sizes { font-size:0.8rem; margin:.5rem 0; color:#555; }
+    .download-btn { display:block; margin:.5rem auto 0; padding:.5rem 1rem; background:#6c5ce7; color:#fff; border-radius:.5rem; transition:filter .3s; }
+    .download-btn:hover { filter:brightness(1.1); }
+  </style>
+</head>
+<body>
+  <header><h1>Pixi All-In-One Tools</h1></header>
+  <div class="tabs">
+    <div class="tab active" data-tab="colorTab"><i class="fas fa-eye-dropper"></i> Color Picker</div>
+    <div class="tab" data-tab="textTab"><i class="fas fa-font"></i> Text Transformer</div>
+    <div class="tab" data-tab="imageTab"><i class="fas fa-compress"></i> Image Compressor</div>
+  </div>
+  <section id="colorTab" class="active">
+    <div class="picker-container">
+      <div class="tabs-inner">
+        <div class="tab-inner active" data-tab-inner="picker">Pick Color</div>
+        <div class="tab-inner" data-tab-inner="image">From Image</div>
+      </div>
+      <div id="picker" class="picker-section active">
+        <input type="color" id="colorInput" class="color-input" value="#6c5ce7">
+      </div>
+      <div id="image" class="picker-section">
+        <input type="file" id="imgUpload" accept="image/*">
+        <div class="canvas-wrapper">
+          <canvas id="canvas"></canvas>
+          <div id="magnifier"><canvas id="magCanvas"></canvas></div>
+        </div>
+      </div>
+      <div class="color-info">
+        <div class="color-swatch" id="pickerSwatch"></div>
+        <div>
+          <p>HEX: <span id="pickerHex">#6C5CE7</span></p>
+          <p>RGB: <span id="pickerRgb">108, 92, 231</span></p>
+        </div>
+        <button class="copy-btn" id="pickerCopy"><i class="fas fa-copy"></i> Copy</button>
+      </div>
+      <div class="palette" id="palette"></div>
+    </div>
+  </section>
+  <section id="textTab">
+    <div class="container transformer">
+      <textarea id="inputText" placeholder="Masukkan teks di sini..."></textarea>
+      <div class="buttons">
+        <button class="capitalize"><i class="fas fa-text-height"></i> Capitalize</button>
+        <button class="uppercase"><i class="fas fa-arrow-up"></i> Uppercase</button>
+        <button class="lowercase"><i class="fas fa-arrow-down"></i> Lowercase</button>
+      </div>
+      <textarea id="outputText" placeholder="Hasil akan muncul..." readonly></textarea>
+      <button id="copyOutput"><i class="fas fa-copy"></i> Copy</button>
+    </div>
+  </section>
+  <section id="imageTab">
+    <div class="container compressor">
+      <div class="controls">
+        <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple>
+        <div class="settings">
+          <label><i class="fas fa-sliders-h"></i> Quality: <span id="qualityValue">0.7</span></label>
+          <input type="range" id="qualityRange" min="0.1" max="1" step="0.1" value="0.7">
+          <select id="formatSelect">
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button id="compressBtn"><i class="fas fa-play"></i> Kompres</button>
+          <button id="clearBtn"><i class="fas fa-trash"></i> Clear</button>
+        </div>
+      </div>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </section>
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => tab.onclick = () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+    // Inner tabs
+    document.querySelectorAll('.tab-inner').forEach(t => t.onclick = () => {
+      document.querySelectorAll('.tab-inner').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.picker-section').forEach(s => s.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.tabInner).classList.add('active');
+    });
+    // Color Picker logic
+    function updateColor(hex, r, g, b) {
+      document.getElementById('pickerSwatch').style.background = hex;
+      document.getElementById('pickerHex').textContent = hex;
+      document.getElementById('pickerRgb').textContent = `${r}, ${g}, ${b}`;
+    }
+    function addToPalette(hex) {
+      const pal = document.getElementById('palette');
+      if ([...pal.children].some(c=>c.getAttribute('data-hex')===hex)) return;
+      const item = document.createElement('div');
+      item.className = 'palette-item';
+      item.setAttribute('data-hex', hex);
+      item.innerHTML = `<div class="palette-swatch" style="background:${hex}"></div><span>${hex}</span><button class="remove-btn">×</button>`;
+      item.querySelector('.remove-btn').onclick = ()=>item.remove();
+      pal.append(item);
+    }
+    document.getElementById('colorInput').oninput = function() {
+      const hex = this.value.toUpperCase();
+      const [r,g,b] = hex.match(/.{2}/g).map(c=>parseInt(c,16));
+      updateColor(hex,r,g,b);
+      addToPalette(hex);
+    };
+    document.getElementById('pickerCopy').onclick = ()=>navigator.clipboard.writeText(document.getElementById('pickerHex').textContent);
+    // Magnifier
+    const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+    const magCanvas=document.getElementById('magCanvas'),magCtx=magCanvas.getContext('2d');
+    const magnifier=document.getElementById('magnifier');
+    document.getElementById('imgUpload').onchange=function(){const file=this.files[0];if(!file)return;const img=new Image();img.onload=()=>{canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;canvas.style.display='block';ctx.drawImage(img,0,0);canvas.onmousemove=e=>{const rect=canvas.getBoundingClientRect();const x=Math.floor((e.clientX-rect.left)*(canvas.width/rect.width));const y=Math.floor((e.clientY-rect.top)*(canvas.height/rect.height));magnifier.style.display='block';const mSize=magnifier.offsetWidth;magnifier.style.left=`${e.clientX-rect.left-mSize/2}px`;magnifier.style.top=`${e.clientY-rect.top-mSize/2}px`;const zoom=mSize/2,sx=x-zoom,sy=y-zoom;magCtx.clearRect(0,0,magCanvas.width,magCanvas.height);magCtx.drawImage(canvas,sx,sy,zoom*2,zoom*2,0,0,magCanvas.width,magCanvas.height);const p=ctx.getImageData(x,y,1,1).data;const hex='#'+[p[0],p[1],p[2]].map(c=>c.toString(16).padStart(2,'0')).join('').toUpperCase();updateColor(hex,p[0],p[1],p[2]);};canvas.onclick=e=>{const rect=canvas.getBoundingClientRect();const x=Math.floor((e.clientX-rect.left)*(canvas.width/rect.width));const y=Math.floor((e.clientY-rect.top)*(canvas.height/rect.height));const p=ctx.getImageData(x,y,1,1).data;const hex='#'+[p[0],p[1],p[2]].map(c=>c.toString(16).padStart(2,'0')).join('').toUpperCase();addToPalette(hex);} ;canvas.onmouseleave=()=>magnifier.style.display='none';};img.src=URL.createObjectURL(file);};
+    // Text Transformer
+    document.querySelectorAll('.buttons button').forEach(btn=>btn.onclick=()=>{const txt=document.getElementById('inputText').value;let res;if(btn.classList.contains('capitalize'))res=txt.replace(/\b\w/g,c=>c.toUpperCase());else if(btn.classList.contains('uppercase'))res=txt.toUpperCase();else res=txt.toLowerCase();document.getElementById('outputText').value=res;});document.getElementById('copyOutput').onclick=()=>navigator.clipboard.writeText(document.getElementById('outputText').value);
+    // Compressor
+    document.getElementById('qualityRange').oninput=function(){document.getElementById('qualityValue').textContent=this.value;};
+    document.getElementById('compressBtn').onclick=function(){const gal=document.getElementById('gallery');gal.innerHTML='';Array.from(document.getElementById('fileInput').files).forEach(file=>{const orig=(file.size/1024).toFixed(1);const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas'),ct=c.getContext('2d');c.width=i.width;c.height=i.height;ct.drawImage(i,0,0);c.toBlob(b=>{const comp=(b.size/1024).toFixed(1);const url=URL.createObjectURL(b);const card=document.createElement('div');card.className='card';card.innerHTML=`<img src="${url}"><div class="sizes">${orig} KB → ${comp} KB</div><a href="${url}" download="${file.name}" class="download-btn"><i class="fas fa-download"></i></a>`;gal.append(card);},document.getElementById('formatSelect').value,parseFloat(document.getElementById('qualityRange').value));};i.src=e.target.result;};r.readAsDataURL(file);});};document.getElementById('clearBtn').onclick=()=>{document.getElementById('gallery').innerHTML='';document.getElementById('fileInput').value='';};
+  </script>
+</body>
+</html>
